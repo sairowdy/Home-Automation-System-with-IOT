@@ -23,18 +23,31 @@ When we apply an active high signal to the signal pin of the relay module from a
 # PROCEDURE:
 
 •	Make the circuit connection as per the diagram. In the mobile, download and “Blynq IoT” application using Google play store and Install it. Create log in ID and Password.
+
 •	Connect the IN pin of the Relay module to D1 pin of NodeMCU (ESP8266).
+
 •	Connect VCC of the Relay of NodeMCU. Connect GND of the Relay to GND of NodeMCU. 
+
 •	Connect your AC bulb to the Relay’s switch terminal securely.
+
 •	Install ESP8266 board in Arduino IDE via Board Manager. Select board: NodeMCU 1.0 (ESP-12E Module).
+
 •	Include necessary libraries: ESP8266WiFi and ESP8266WebServer.
+
 •	In the code, configure Wi-Fi SSID and Password.
+
 •	Set up a web server that responds to /on and /off URLs.
+
 •	Upload the code to the ESP8266 using a micro USB cable.
+
 •	Get Local IP Address After uploading, open Serial Monitor to find the local IP address of ESP8266.
+
 •	Create Applets on IFTTT - For "This", select Google Assistant → "Say a simple phrase". Command: "Turn on the light". For "That", choose Webhooks → "Make a web request". 
+
 •	Repeat to create another applet for command with URL.
+
 •	Test the System - Google Assistant triggers IFTTT → sends Webhook to ESP8266 → turns ON the relay (light).
+
 •	Say "Turn off the ligh to switch it OFF, Say "Turn on the light" to switch it ON.
 
 # CIRCUIT DIAGRAM:
@@ -45,13 +58,153 @@ When we apply an active high signal to the signal pin of the relay module from a
  
 # PROGRAM:
 
+#include <Servo.h>
 
+ #include <LiquidCrystal.h>
+
+LiquidCrystal lcd(A1,10,9,6,5,3);
+
+float value;
+
+int tmp = A0;
+
+const int pingPin = 7;
+
+ int servoPin = 8;
+
+Servo servo1;
+
+void setup() {
+ 
+ Serial.begin(9600);
+
+servo1.attach(servoPin);
+
+ lcd.begin(16, 2);
+
+  pinMode(2, INPUT);    // PIR sensor
+ 
+ pinMode(4, OUTPUT);   // PIR LED
+ 
+ pinMode(11, OUTPUT);  // General LED
+ 
+ pinMode(12, OUTPUT);  // Temp HIGH LED
+ 
+ pinMode(13, OUTPUT);  // Temp LOW LED
+ 
+ pinMode(A0, INPUT);   // Temperature sensor
+
+}
+
+void loop() {
+
+  long duration, cm;
+
+ // Ultrasonic
+ 
+ pinMode(pingPin, OUTPUT);
+ 
+  digitalWrite(pingPin, LOW);
+ 
+ delayMicroseconds(2);
+ 
+ digitalWrite(pingPin, HIGH);
+ 
+  delayMicroseconds(5);
+ 
+ digitalWrite(pingPin, LOW);
+
+ pinMode(pingPin, INPUT);
+ 
+ duration = pulseIn(pingPin, HIGH);
+ 
+ cm = microsecondsToCentimeters(duration);
+
+ if(cm < 40) {
+
+servo1.write(90);
+
+lcd.setCursor(0,1);
+
+lcd.print("Door:OPEN   ");
+
+ } else {
+
+servo1.write(0);
+
+lcd.setCursor(0,1);
+
+lcd.print("Door:CLOSED ");
+
+}
+
+ // PIR sensor LED
+
+ int pir = digitalRead(2);
+
+if(pir == HIGH) {
+
+digitalWrite(4, HIGH);
+
+lcd.setCursor(10,0);
+
+lcd.print("LED:ON ");
+
+ } else {
+
+digitalWrite(4, LOW);
+
+lcd.setCursor(10,0);
+
+lcd.print("LED:OFF");
+
+}
+
+ // Temperature
+
+value = analogRead(tmp) * 0.004882814;
+
+value = (value - 0.5) * 100.0;
+
+lcd.setCursor(0,0);
+
+lcd.print("Tmp:");
+
+lcd.print(value);
+
+Serial.print("temperature: ");
+
+Serial.println(value);
+
+if(value > 20) {
+
+digitalWrite(12, HIGH);  // Hot LED ON
+
+digitalWrite(13, LOW);
+
+} else {
+
+digitalWrite(12, LOW);
+
+digitalWrite(13, HIGH);  // Cold LED ON
+
+}
+
+delay(500);
+
+}
+
+long microsecondsToCentimeters(long microseconds) {
+
+return microseconds / 29 / 2;
+} 
  
 # Output:
 
+<img width="1089" height="670" alt="image" src="https://github.com/user-attachments/assets/3c9f671d-5540-494c-baf5-28302f1a83b8" />
 
 
 ## Result:
 
-
+The Home Automation System with IoT successfully enabled remote monitoring and control of home appliances through the internet.
 
